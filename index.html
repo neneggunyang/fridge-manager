@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>냉장고 관리</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+  [hidden] { display: none !important; }
+
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #eef1f3;
+    color: #27313a;
+  }
+  .app {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 34px 22px 50px;
+  }
+  header {
+    position: relative;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  h1 { margin: 0; font-size: 32px; font-weight: 800; }
+  .subtitle { margin: 7px 0 0; color: #7a858d; font-size: 14px; }
+  .stats {
+    position: absolute;
+    right: 0;
+    bottom: 3px;
+    font-size: 14px;
+    color: #65717a;
+  }
+  .stats { font-size: 14px; color: #65717a; }
+  .fridge {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    padding: 12px;
+    background: linear-gradient(145deg, #dfe4e7, #bfc7cc);
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(48,58,65,.18);
+  }
+  .door {
+    position: relative;
+    min-height: 650px;
+    padding: 28px 24px;
+    background: linear-gradient(145deg, #fafbfb, #e7ebed);
+    border-radius: 15px;
+    overflow: hidden;
+  }
+  .door:before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 5px;
+    background: rgba(130,140,146,.18);
+  }
+  .freezer:before { right: 0; }
+  .fridge-door:before { left: 0; }
+  .door-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .door-title h2 { margin: 0; font-size: 21px; }
+  .door-title span {
+    font-size: 12px;
+    color: #849098;
+    background: #f8fafb;
+    padding: 6px 10px;
+    border-radius: 20px;
+  }
+  .shelf {
+    position: relative;
+    min-height: 128px;
+    margin: 0 0 13px;
+    padding: 14px 12px 20px;
+    border-bottom: 8px solid #c4ccd0;
+    border-radius: 5px;
+    background: rgba(255,255,255,.35);
+    cursor: pointer;
+    transition: .15s;
+  }
+  .shelf:hover { background: rgba(255,255,255,.75); }
+  .shelf-label {
+    font-size: 11px;
+    color: #9aa4aa;
+    margin-bottom: 9px;
+  }
+  .items {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+    align-items: start;
+    max-height: 190px;
+    overflow-y: auto;
+    padding: 2px 3px 4px 0;
+  }
+  .items::-webkit-scrollbar { width: 7px; }
+  .items::-webkit-scrollbar-thumb { background: #cbd3d7; border-radius: 10px; }
+  .item {
+    min-width: 0;
+    width: 100%;
+    padding: 8px 7px;
+    background: white;
+    border: 1px solid #dce2e5;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(50,60,65,.08);
+  }
+  .item-name {
+    font-weight: 700;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-date {
+    margin-top: 4px;
+    font-size: 9px;
+    color: #849098;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-age {
+    margin-top: 4px;
+    font-size: 9px;
+    color: #607d8b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item.completed { opacity: .55; background: #f2f4f5; }
+  .item.completed .item-name,
+  .item.completed .item-date,
+  .item.completed .item-age { text-decoration: line-through; }
+  .item-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin-top: 7px;
+  }
+  .use-check {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    color: #748087;
+    cursor: pointer;
+  }
+  .use-check input { width: 14px; height: 14px; margin: 0; accent-color: #667f89; }
+  .delete-item {
+    width: auto;
+    height: 24px;
+    padding: 0 7px;
+    border-radius: 6px;
+    background: #edf0f1;
+    color: #7c878d;
+    font-size: 9px;
+    font-weight: 600;
+  }
+  .delete-item:hover { background: #e2e6e8; color: #4e5b62; }
+  .add-hint {
+    color: #aab2b7;
+    font-size: 12px;
+    padding: 8px;
+  }
+  .controls {
+    margin-top: 20px;
+    padding: 18px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 5px 20px rgba(40,50,55,.08);
+  }
+  .controls h3 { margin: 0 0 13px; font-size: 16px; }
+  .top-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .top-actions button {
+    height: 38px;
+    border-radius: 9px;
+  }
+  .save-button { background: #536c77; }
+  .png-button { background: #7b6b78; }
+  .save-status {
+    text-align: center;
+    margin-top: 7px;
+    min-height: 17px;
+    font-size: 11px;
+    color: #7a858d;
+  }
+  .form {
+    display: grid;
+    grid-template-columns: 1.2fr .8fr .8fr 1.3fr auto;
+    gap: 8px;
+  }
+  input, select, button {
+    height: 42px;
+    border: 1px solid #d7dfe3;
+    border-radius: 9px;
+    padding: 0 11px;
+    font: inherit;
+  }
+  input:focus, select:focus { outline: 2px solid #b8d8e5; border-color: #a8cbd8; }
+  button {
+    border: 0;
+    background: #536c77;
+    color: white;
+    padding: 0 17px;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  button:hover { background: #405a65; }
+  .notice { margin-top: 9px; font-size: 12px; color: #8a959b; }
+  .meal-notes {
+    margin-top: 16px;
+    padding: 18px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 5px 20px rgba(40,50,55,.08);
+  }
+  .meal-notes h3 { margin: 0 0 8px; font-size: 16px; }
+  .meal-notes p { margin: 0 0 10px; font-size: 12px; color: #8a959b; }
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    resize: vertical;
+    border: 1px solid #d7dfe3;
+    border-radius: 9px;
+    padding: 11px;
+    font: inherit;
+  }
+  textarea:focus { outline: 2px solid #b8d8e5; border-color: #a8cbd8; }
+  @media (max-width: 760px) {
+    .fridge { grid-template-columns: 1fr; }
+    .door { min-height: 480px; }
+    .form { grid-template-columns: 1fr 1fr; }
+    .items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .form button { grid-column: 1 / -1; }
+    header { display: block; }
+    .stats {
+      position: static;
+      margin-top: 10px;
+    }
+  }
+</style>
+</head>
+<body>
+
+
+    <div>
+      <h1>냉장고에 뭐가 들었나요?</h1>
+      <p class="subtitle">내 냉장고 속 재료를 한눈에 기록해요.</p>
+    </div>
+    <div class="stats" id="stats">냉동 0개 · 냉장 0개</div>
+  </header>
+
+  <main class="fridge">
+    <section class="door freezer">
+      <div class="door-title">
+        <h2>❄️ 냉동실</h2><span>LEFT</span>
+      </div>
+      <div class="shelf" data-location="냉동실 · 상단">
+        <div class="shelf-label">상단</div><div class="items"></div>
+      </div>
+      <div class="shelf" data-location="냉동실 · 중단">
+        <div class="shelf-label">중단</div><div class="items"></div>
+      </div>
+      <div class="shelf" data-location="냉동실 · 하단">
+        <div class="shelf-label">하단</div><div class="items"></div>
+      </div>
+    </section>
+
+    <section class="door fridge-door">
+      <div class="door-title">
+        <h2>🥬 냉장실</h2><span>RIGHT</span>
+      </div>
+      <div class="shelf" data-location="냉장실 · 상단">
+        <div class="shelf-label">상단</div><div class="items"></div>
+      </div>
+      <div class="shelf" data-location="냉장실 · 중단">
+        <div class="shelf-label">중단</div><div class="items"></div>
+      </div>
+      <div class="shelf" data-location="냉장실 · 하단">
+        <div class="shelf-label">하단</div><div class="items"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="top-actions">
+    <button type="button" class="save-button" id="saveButton">💾 저장</button>
+    <button type="button" class="png-button" id="pngButton">🖼️ PNG로 저장</button>
+  </div>
+  <div class="save-status" id="saveStatus"></div>
+
+  <section class="controls">
+    <h3>식재료 추가</h3>
+    <form class="form" id="form">
+      <input id="name" placeholder="식재료 이름" required>
+      <input id="date" type="date" aria-label="냉장고에 넣은 날">
+      <input id="qty" placeholder="수량" value="1">
+      <select id="location">
+        <option>냉장실 · 상단</option>
+        <option>냉장실 · 중단</option>
+        <option>냉장실 · 하단</option>
+        <option>냉동실 · 상단</option>
+        <option>냉동실 · 중단</option>
+        <option>냉동실 · 하단</option>
+      </select>
+      <button type="submit">추가하기</button>
+    </form>
+    <div class="notice">재료가 많아지면 각 선반 안에서 스크롤할 수 있어요. 이 앱은 로그인 없이 이 브라우저에만 저장됩니다. 넣은 날을 몰라도 비워둔 채 등록할 수 있고, 사용할 계획을 체크하면 취소선으로 표시됩니다.</div>
+  </section>
+
+  <section class="meal-notes">
+    <h3>🍳 요리·식단 메모</h3>
+    <p>냉장고 속 재료로 해먹을 요리나 앞으로의 식단을 자유롭게 적어보세요.</p>
+    <textarea id="mealNotes" placeholder="예) 계란 + 대파 → 계란볶음밥&#10;이번 주에는 냉동 삼겹살부터 먹기"></textarea>
+  </section>
+</div>
+
+
+<script>
+let items = [];
+let mealNotes = "";
+
+const $ = (id) => document.getElementById(id);
+
+function cacheKey() {
+  return "myFridgeItems";
+}
+
+function notesKey() {
+  return "myFridgeMealNotes";
+}
+
+function daysSince(dateString) {
+  const start = new Date(dateString + "T00:00:00");
+  const today = new Date();
+  const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.max(0, Math.floor((now - start) / 86400000));
+}
+
+function localBackup() {
+  localStorage.setItem(cacheKey(), JSON.stringify(items));
+  localStorage.setItem(notesKey(), $("mealNotes").value);
+}
+
+function setStatus(message) {
+  $("saveStatus").textContent = message;
+}
+
+function loadLocalData() {
+  items = JSON.parse(localStorage.getItem(cacheKey()) || "[]");
+  $("mealNotes").value = localStorage.getItem(notesKey()) || "";
+  render();
+}
+
+function saveLocal() {
+  localBackup();
+  setStatus("✓ 이 브라우저에 저장했어요.");
+}
+
+loadLocalData();
+
+$("saveButton").addEventListener("click", saveLocal);
+
+$("mealNotes").addEventListener("input", () => {
+  localBackup();
+});
+
+function render() {
+  document.querySelectorAll(".shelf .items").forEach(el => el.innerHTML = "");
+
+  items.forEach(item => {
+    if (!item.id) item.id = crypto.randomUUID();
+    if (typeof item.completed !== "boolean") item.completed = false;
+
+    const shelf = [...document.querySelectorAll(".shelf")]
+      .find(s => s.dataset.location === item.location);
+    if (!shelf) return;
+
+    const card = document.createElement("div");
+    card.className = "item" + (item.completed ? " completed" : "");
+
+    const dateInfo = item.date
+      ? `${item.date.replaceAll("-", ".")} 넣음`
+      : "넣은 날 미기록";
+    const ageInfo = item.date
+      ? `넣은 지 ${daysSince(item.date)}일 · ${escapeHtml(item.qty)}`
+      : `넣은 날 없음 · ${escapeHtml(item.qty)}`;
+
+    card.innerHTML = `
+      <div class="item-name">${escapeHtml(item.name)}</div>
+      <div class="item-date">${dateInfo}</div>
+      <div class="item-age">${ageInfo}</div>
+      <div class="item-actions">
+        <label class="use-check">
+          <input type="checkbox" class="complete-check" ${item.completed ? "checked" : ""}>
+          사용할 계획
+        </label>
+        <button type="button" class="delete-item">삭제</button>
+      </div>
+    `;
+
+    card.querySelector(".complete-check").addEventListener("change", async e => {
+      item.completed = e.target.checked;
+      localBackup();
+      render();
+        });
+
+    card.querySelector(".delete-item").addEventListener("click", async e => {
+      e.stopPropagation();
+      const index = items.indexOf(item);
+      if (index !== -1) items.splice(index, 1);
+      localBackup();
+      render();
+        });
+
+    shelf.querySelector(".items").appendChild(card);
+  });
+
+  const freezer = items.filter(x => x.location.startsWith("냉동")).length;
+  const fridge = items.length - freezer;
+  $("stats").textContent = `냉동 ${freezer}개 · 냉장 ${fridge}개`;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+  }[c]));
+}
+
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  items.push({
+    id: crypto.randomUUID(),
+    name: $("name").value.trim(),
+    date: $("date").value,
+    qty: $("qty").value.trim() || "1",
+    location: $("location").value,
+    completed: false
+  });
+
+  localBackup();
+  e.target.reset();
+  $("date").value = new Date().toISOString().slice(0,10);
+  $("qty").value = "1";
+  render();
+});
+
+document.querySelectorAll(".shelf").forEach(shelf => {
+  shelf.addEventListener("click", e => {
+    if (e.target.closest(".item")) return;
+    $("location").value = shelf.dataset.location;
+    $("name").focus();
+  });
+});
+
+</script>
+</body>
+</html>
