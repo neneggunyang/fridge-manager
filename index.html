@@ -103,7 +103,9 @@
 
   .shelf{
     position:relative;
-    min-height:132px;
+    height:132px;
+    display:flex;
+    flex-direction:column;
     margin:0 0 16px;
     padding:15px 14px 21px;
     border-bottom:8px solid #c4ccd0;
@@ -112,21 +114,146 @@
     cursor:pointer;
     transition:.15s;
   }
+  .shelf-height-small{height:120px}
+  .shelf-height-basic{height:155px}
+  .shelf-height-large{height:235px}
   .shelf:hover{background:rgba(255,255,255,.72)}
   .shelf:last-child{margin-bottom:0}
+  .shelf-head{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    min-height:30px;
+    margin-bottom:11px;
+  }
   .shelf-label{
     text-align:center;
     font-size:11px;
     color:#9aa4aa;
-    margin-bottom:11px;
+    margin-bottom:0;
+  }
+  .rename-shelf{
+    width:24px;height:30px;padding:0;
+    flex:0 0 24px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    box-sizing:border-box;
+    border:1px solid transparent;border-radius:7px;
+    background:transparent;color:#9aa4aa;
+    font-family:Arial,sans-serif;
+    font-size:12px;line-height:1;
+    appearance:none;
+  }
+  .rename-shelf:hover{background:#eef1f2;color:#66757d}
+
+  .shelf-name-editor{
+    display:none;
+    width:132px;height:30px;
+    flex:0 0 132px;
+    box-sizing:border-box;
+    padding:0 9px;
+    border:1px solid #d4dde1;
+    border-radius:7px;
+    background:#fff;color:#66757d;
+    font-size:10px;
+    text-align:center;
+    outline:none;
+  }
+  .shelf-name-editor:focus{
+    border-color:#aebbc1;
+    box-shadow:0 0 0 2px rgba(174,187,193,.15);
+  }
+
+  /* 체크박스처럼 보이지 않도록 저장 버튼을 명확한 아이콘 버튼으로 중앙 정렬 */
+  .shelf-save-name{
+    display:none;
+    flex:0 0 30px;
+    width:30px;height:30px;
+    padding:0;
+    box-sizing:border-box;
+    align-items:center;
+    justify-content:center;
+    border:1px solid #d4dde1;
+    border-radius:7px;
+    background:#fff;
+    color:#66757d;
+    font-family:Arial,sans-serif;
+    font-size:14px;
+    font-weight:700;
+    line-height:1;
+    text-align:center;
+    appearance:none;
+  }
+  .shelf-save-name:hover{background:#eef1f2;color:#536c77}
+  .shelf-save-name:active{transform:translateY(1px)}
+
+  .shelf-height-controls{
+    display:none;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    margin:0 0 0 2px;
+    padding-left:7px;
+    border-left:1px solid #e1e6e8;
+  }
+  .shelf.editing .shelf-label{display:none}
+  .shelf.editing .shelf-name-editor,
+  .shelf.editing .shelf-save-name,
+  .shelf.editing .shelf-height-controls{display:flex}
+
+  .shelf.editing .rename-shelf{
+    background:#eef1f2;
+    border-color:#d4dde1;
+    color:#66757d;
+  }
+  .shelf.editing .shelf-head{
+    margin-bottom:5px;
+    flex-wrap:wrap;
+    row-gap:4px;
+  }
+
+  .shelf-height-btn{
+    height:30px;
+    min-width:43px;
+    padding:0 8px;
+    box-sizing:border-box;
+    border:1px solid #d8dfe2;
+    border-radius:7px;
+    background:#fff;
+    color:#7c878d;
+    font-size:9px;
+    font-weight:600;
+    line-height:1;
+  }
+  .shelf-height-btn:hover{background:#eef1f2}
+  .shelf-height-btn.active{
+    background:#536c77;
+    border-color:#536c77;
+    color:#fff;
+  }
+
+  @media (max-width:600px){
+    .shelf-head{gap:5px}
+    .shelf.editing .shelf-head{justify-content:center}
+    .shelf-name-editor{width:120px;flex-basis:120px}
+    .shelf-height-controls{
+      margin-left:0;
+      padding-left:5px;
+      gap:3px;
+    }
+    .shelf-height-btn{min-width:39px;padding:0 6px}
   }
 
   .items{
+    flex:1;
+    min-height:0;
     display:grid;
     grid-template-columns:repeat(4,minmax(0,1fr));
     gap:9px;
     align-items:start;
-    max-height:185px;
+    max-height:none;
     overflow-y:auto;
     padding:2px 3px 4px;
     scrollbar-gutter:stable;
@@ -162,6 +289,12 @@
     text-overflow:ellipsis;
   }
   .item-age{color:#607d8b}
+  .item-expiry{margin-top:4px;font-size:9px;line-height:1.3;color:#849098;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item.expiring{border-color:#e7a2a2;box-shadow:0 4px 12px rgba(190,55,55,.16);background:#fffafa}
+  .item.expiring .item-expiry{color:#d33b3b;font-weight:800}
+  .item.expired{border-color:#d55b5b;background:#fff4f4;box-shadow:0 4px 14px rgba(180,40,40,.22)}
+  .item.expired .item-expiry{color:#c52f2f;font-weight:800}
+  .item.completed .item-expiry{text-decoration:line-through}
   .item.completed{opacity:.55;background:#f2f4f5}
   .item.completed .item-name,
   .item.completed .item-date,
@@ -212,8 +345,10 @@
     height:39px;
     border-radius:9px;
   }
-  .save-button{background:#536c77}
-  .png-button{background:#7b6b78}
+  .save-button{background:#536c77;color:#fff}
+  .png-button{background:#7b6b78;color:#fff}
+  .clear-button{background:#8a6d72;color:#fff}
+  .clear-button:hover{background:#72585d}
   .save-status{
     text-align:center;
     margin-top:8px;
@@ -236,7 +371,7 @@
   }
   .form{
     display:grid;
-    grid-template-columns:1.2fr .85fr .75fr 1.2fr auto;
+    grid-template-columns:1.15fr .78fr .52fr .62fr 1.05fr auto;
     gap:9px;
     align-items:center;
   }
@@ -274,11 +409,144 @@
     line-height:1.6;
     color:#8a959b;
   }
+
+  .fridge-settings{
+    margin-top:18px;
+    padding:18px 20px;
+    background:#fff;
+    border-radius:17px;
+    box-shadow:0 5px 20px rgba(40,50,55,.07);
+  }
+  .fridge-settings h3{margin:0 0 6px;text-align:center;font-size:16px}
+  .settings-desc{margin:0 0 14px;text-align:center;font-size:12px;color:#8a959b;line-height:1.5}
+  .settings-row{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;align-items:end}
+  .setting-field label{display:block;margin:0 0 6px 2px;font-size:11px;color:#748087}
+  .setting-field select{height:42px}
+  .settings-row button{height:42px;border:0;border-radius:9px;background:#536c77;color:#fff;padding:0 16px;font-weight:700;white-space:nowrap}
+  .settings-row button:hover{background:#405a65}
+  .settings-status{text-align:center;min-height:17px;margin-top:8px;font-size:11px;color:#7a858d}
+  .edit-item{width:auto;height:24px;padding:0 7px;border:0;border-radius:6px;background:#edf0f1;color:#66757d;font-size:9px;font-weight:600}
+  .edit-item:hover{background:#e2e6e8;color:#405a65}
+  .modal-backdrop{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(39,49,58,.35)}
+  .edit-modal{width:min(430px,100%);padding:20px;background:#fff;border-radius:17px;box-shadow:0 18px 50px rgba(30,40,45,.22)}
+  .edit-modal h3{margin:0 0 14px;text-align:center;font-size:17px}
+  .edit-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:9px}
+  .edit-grid label{display:block;font-size:11px;color:#748087;margin:0 0 5px 2px}
+  .edit-grid input,.edit-grid select{height:40px}
+  .edit-full{grid-column:1/-1}
+  .edit-actions{display:flex;gap:8px;margin-top:14px}
+  .edit-actions button{flex:1;height:40px;border:0;border-radius:9px;font-weight:700}
+  .edit-cancel{background:#edf0f1;color:#66757d}
+  .edit-save{background:#536c77;color:#fff}
+  @media(max-width:390px){.edit-grid{grid-template-columns:1fr}.edit-full{grid-column:auto}}
+
   .meal-notes p{
     margin:0 0 10px;
     text-align:center;
     font-size:12px;
     color:#8a959b;
+  }
+  .recipe-form{display:grid;gap:8px}
+  .recipe-title{height:40px}
+  .recipe-body{min-height:92px}
+  .recipe-save{
+    justify-self:center;
+    min-width:120px;
+    height:38px;
+    padding:0 16px;
+    border:0;
+    border-radius:9px;
+    background:#536c77;
+    color:#fff;
+    font-weight:700;
+  }
+  .recipe-save:hover{background:#405a65}
+  .recipe-editing{margin:0 0 9px;text-align:center;font-size:11px;color:#66757d}
+  .recipe-notes-list{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-start;
+    gap:12px;
+    margin-top:15px;
+  }
+  .recipe-note{
+    position:relative;
+    flex:0 0 190px;
+    width:190px;
+    padding:15px 14px 12px;
+    background:#fffdf0;
+    border:1px solid #eee6bc;
+    border-radius:4px 4px 10px 4px;
+    box-shadow:0 5px 12px rgba(70,65,45,.10);
+    transform:rotate(-.5deg);
+    cursor:pointer;
+    overflow:hidden;
+  }
+  .recipe-note:nth-child(2n){transform:rotate(.7deg);background:#fff7d8}
+  .recipe-note:nth-child(3n){transform:rotate(-.8deg);background:#fffbed}
+  .recipe-note:before{
+    content:"";
+    position:absolute;
+    top:0;left:50%;
+    transform:translateX(-50%);
+    width:54px;height:7px;
+    background:rgba(220,205,143,.48);
+    border-radius:0 0 4px 4px;
+  }
+  .recipe-note-title{
+    margin:3px 0 7px;
+    padding-right:2px;
+    font-size:14px;
+    font-weight:800;
+    color:#4d4b40;
+    line-height:1.35;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .recipe-note-body{
+    color:#68655a;
+    font-size:12px;
+    line-height:1.55;
+    white-space:pre-wrap;
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:4;
+    overflow:hidden;
+  }
+  .recipe-note.expanded .recipe-note-body{
+    display:block;
+    -webkit-line-clamp:unset;
+    overflow:visible;
+  }
+  .recipe-note-hint{margin-top:7px;font-size:9px;color:#9a9582;text-align:right}
+  .recipe-note-date{
+    margin-top:6px;
+    font-size:8px;
+    color:#aaa693;
+    text-align:left;
+    letter-spacing:.01em;
+  }
+  .recipe-note.expanded .recipe-note-hint{display:none}
+  .recipe-note-actions{display:flex;justify-content:flex-end;gap:5px;margin-top:9px}
+  .recipe-note-actions button{
+    height:24px;
+    padding:0 7px;
+    border:0;
+    border-radius:6px;
+    background:rgba(220,216,190,.55);
+    color:#777362;
+    font-size:9px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .recipe-note-actions button:hover{background:rgba(205,199,166,.8)}
+  .recipe-empty{
+    grid-column:1/-1;
+    padding:14px;
+    text-align:center;
+    font-size:11px;
+    color:#9aa09f;
   }
   textarea{
     display:block;
@@ -297,7 +565,7 @@
     .app{padding-left:18px;padding-right:18px}
     header{padding:0 90px}
     .items{grid-template-columns:repeat(3,minmax(0,1fr))}
-    .form{grid-template-columns:1.3fr .9fr .8fr 1.1fr}
+    .form{grid-template-columns:1.25fr .85fr .65fr .75fr 1.05fr}
     .form button{grid-column:1/-1}
   }
 
@@ -329,10 +597,13 @@
     .door-title{margin:0 2px 18px}
     .door-title h2{font-size:19px}
     .shelf{
-      min-height:126px;
+      height:126px;
       margin-bottom:13px;
       padding:14px 10px 18px;
     }
+    .shelf-height-small{height:112px}
+    .shelf-height-basic{height:145px}
+    .shelf-height-large{height:205px}
     .items{
       grid-template-columns:repeat(2,minmax(0,1fr));
       gap:8px;
@@ -363,6 +634,7 @@
   }
 
   @media(max-width:390px){
+    .recipe-note{flex-basis:calc(50vw - 20px);width:calc(50vw - 20px)}
     h1{font-size:25px}
     .door{padding-left:12px;padding-right:12px}
     .items{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
@@ -383,68 +655,101 @@
     <div class="stats" id="stats">냉동 0개 · 냉장 0개</div>
   </header>
 
-  <main class="fridge">
+  <main class="fridge" id="fridge">
     <section class="door freezer">
       <div class="door-title">
         <h2>❄️ 냉동실</h2><span>LEFT</span>
       </div>
-      <div class="shelf" data-location="냉동실 · 상단">
-        <div class="shelf-label">상단</div><div class="items"></div>
-      </div>
-      <div class="shelf" data-location="냉동실 · 중단">
-        <div class="shelf-label">중단</div><div class="items"></div>
-      </div>
-      <div class="shelf" data-location="냉동실 · 하단">
-        <div class="shelf-label">하단</div><div class="items"></div>
-      </div>
+      <div class="shelves" id="freezerShelves"></div>
     </section>
 
     <section class="door fridge-door">
       <div class="door-title">
         <h2>🥬 냉장실</h2><span>RIGHT</span>
       </div>
-      <div class="shelf" data-location="냉장실 · 상단">
-        <div class="shelf-label">상단</div><div class="items"></div>
-      </div>
-      <div class="shelf" data-location="냉장실 · 중단">
-        <div class="shelf-label">중단</div><div class="items"></div>
-      </div>
-      <div class="shelf" data-location="냉장실 · 하단">
-        <div class="shelf-label">하단</div><div class="items"></div>
-      </div>
+      <div class="shelves" id="fridgeShelves"></div>
     </section>
   </main>
 
   <div class="top-actions">
     <button type="button" class="save-button" id="saveButton">💾 저장</button>
     <button type="button" class="png-button" id="pngButton">🖼️ PNG로 저장</button>
+    <button type="button" class="clear-button" id="clearFreezerButton">❄️ 냉동실 비우기</button>
+    <button type="button" class="clear-button" id="clearFridgeButton">🥬 냉장실 비우기</button>
   </div>
   <div class="save-status" id="saveStatus"></div>
+
+  <section class="fridge-settings">
+    <h3>⚙️ 냉장고 구조 설정</h3>
+    <p class="settings-desc">내 냉장고에 맞게 냉동실과 냉장실의 선반 수를 조절할 수 있어요.</p>
+    <div class="settings-row">
+      <div class="setting-field">
+        <label for="freezerCount">❄️ 냉동실 선반</label>
+        <select id="freezerCount" aria-label="냉동실 선반 수"></select>
+      </div>
+      <div class="setting-field">
+        <label for="fridgeCount">🥬 냉장실 선반</label>
+        <select id="fridgeCount" aria-label="냉장실 선반 수"></select>
+      </div>
+      <button type="button" id="applyFridgeSettings">적용하기</button>
+    </div>
+    <div class="settings-status" id="settingsStatus"></div>
+  </section>
 
   <section class="controls">
     <h3>식재료 추가</h3>
     <form class="form" id="form">
       <input id="name" placeholder="식재료 이름" required>
       <input id="date" type="date" aria-label="냉장고에 넣은 날">
-      <input id="qty" placeholder="수량" value="1">
-      <select id="location">
-        <option>냉장실 · 상단</option>
-        <option>냉장실 · 중단</option>
-        <option>냉장실 · 하단</option>
-        <option>냉동실 · 상단</option>
-        <option>냉동실 · 중단</option>
-        <option>냉동실 · 하단</option>
+      <input id="qty" type="number" min="0" step="any" placeholder="수량" value="1">
+      <select id="unit" aria-label="수량 단위">
+        <option value="개">개</option>
+        <option value="g">g</option>
+        <option value="kg">kg</option>
+        <option value="ml">ml</option>
+        <option value="L">L</option>
+        <option value="팩">팩</option>
+        <option value="봉">봉</option>
+        <option value="병">병</option>
+        <option value="캔">캔</option>
+        <option value="통">통</option>
+        <option value="묶음">묶음</option>
       </select>
+      <input id="expiry" type="date" aria-label="유통기한" title="유통기한">
+      <select id="location" aria-label="보관 위치"></select>
       <button type="submit">추가하기</button>
     </form>
-    <div class="notice">재료가 많아지면 각 선반 안에서 스크롤할 수 있어요. 이 앱은 로그인 없이 이 브라우저에만 저장됩니다. 넣은 날을 몰라도 비워둔 채 등록할 수 있고, 사용할 계획을 체크하면 취소선으로 표시됩니다.</div>
+    <div class="notice">재료가 많아지면 각 선반 안에서 스크롤할 수 있어요. 이 앱은 로그인 없이 이 브라우저에만 저장됩니다. 넣은 날을 몰라도 비워둔 채 등록할 수 있고, 유통기한을 입력하면 3일 전부터 빨간색으로 강조됩니다. 사용할 계획을 체크하면 취소선으로 표시됩니다.</div>
   </section>
 
   <section class="meal-notes">
     <h3>🍳 요리·식단 메모</h3>
-    <p>냉장고 속 재료로 해먹을 요리나 앞으로의 식단을 자유롭게 적어보세요.</p>
-    <textarea id="mealNotes" placeholder="예) 계란 + 대파 → 계란볶음밥&#10;이번 주에는 냉동 삼겹살부터 먹기"></textarea>
+    <p>레시피나 식단 아이디어를 포스트잇처럼 저장해두세요. 긴 메모는 눌러서 펼쳐볼 수 있어요.</p>
+    <form class="recipe-form" id="recipeForm">
+      <div class="recipe-editing" id="recipeEditing" hidden>메모를 수정하는 중이에요.</div>
+      <input class="recipe-title" id="recipeTitle" placeholder="메모 제목 (예: 계란볶음밥)" maxlength="80">
+      <textarea class="recipe-body" id="recipeBody" placeholder="예) 계란 + 대파 볶기 → 밥 넣기 → 간장으로 간하기"></textarea>
+      <button type="submit" class="recipe-save" id="recipeSaveButton">📝 메모 저장</button>
+    </form>
+    <div class="recipe-notes-list" id="recipeNotesList"></div>
   </section>
+</div>
+
+<div class="modal-backdrop" id="editModal" hidden>
+  <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <h3 id="editModalTitle">식재료 수정</h3>
+    <form id="editForm">
+      <div class="edit-grid">
+        <div class="edit-full"><label for="editName">식재료 이름</label><input id="editName" required></div>
+        <div><label for="editDate">냉장고에 넣은 날</label><input id="editDate" type="date"></div>
+        <div><label for="editExpiry">유통기한</label><input id="editExpiry" type="date"></div>
+        <div><label for="editQty">수량</label><input id="editQty" type="number" min="0" step="any"></div>
+        <div><label for="editUnit">단위</label><select id="editUnit"><option>개</option><option>g</option><option>kg</option><option>ml</option><option>L</option><option>팩</option><option>봉</option><option>병</option><option>캔</option><option>통</option><option>묶음</option></select></div>
+        <div class="edit-full"><label for="editLocation">보관 위치</label><select id="editLocation"></select></div>
+      </div>
+      <div class="edit-actions"><button type="button" class="edit-cancel" id="editCancel">취소</button><button type="submit" class="edit-save">저장</button></div>
+    </form>
+  </div>
 </div>
 
 <script>
@@ -453,6 +758,222 @@ let items = [];
 const $ = id => document.getElementById(id);
 const cacheKey = () => "myFridgeItems";
 const notesKey = () => "myFridgeMealNotes";
+const settingsKey = () => "myFridgeSettings";
+
+let fridgeSettings = { freezer: 3, fridge: 3, freezerNames: [], fridgeNames: [], freezerHeights: [], fridgeHeights: [] };
+
+function defaultShelfLabel(index, count){
+  if(count === 3) return ["상단","중단","하단"][index];
+  if(count === 2) return ["상단","하단"][index];
+  if(count === 4) return ["상단","중상단","중하단","하단"][index];
+  if(count === 5) return ["최상단","상단","중단","하단","최하단"][index];
+  return `${index + 1}단`;
+}
+
+function shelfLabel(type,index,count){
+  const names = type === "freezer" ? fridgeSettings.freezerNames : fridgeSettings.fridgeNames;
+  return names[index] || defaultShelfLabel(index,count);
+}
+
+function shelfLocation(type,index,count){
+  return `${type === "freezer" ? "냉동실" : "냉장실"} · ${shelfLabel(type,index,count)}`;
+}
+
+function getShelfLocations(type,count){
+  return Array.from({length:count},(_,i)=>shelfLocation(type,i,count));
+}
+
+function populateCountSelects(){
+  [$("freezerCount"),$("fridgeCount")].forEach(select=>{
+    select.innerHTML = "";
+    for(let i=1;i<=8;i++){
+      const option=document.createElement("option");
+      option.value=i; option.textContent=`${i}단`; select.appendChild(option);
+    }
+  });
+  $("freezerCount").value=fridgeSettings.freezer;
+  $("fridgeCount").value=fridgeSettings.fridge;
+}
+
+function saveSettings(){
+  localStorage.setItem(settingsKey(),JSON.stringify(fridgeSettings));
+}
+
+function loadSettings(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(settingsKey())||"null");
+    if(saved && Number.isInteger(saved.freezer) && Number.isInteger(saved.fridge)){
+      fridgeSettings={
+        freezer:Math.min(8,Math.max(1,saved.freezer)),
+        fridge:Math.min(8,Math.max(1,saved.fridge)),
+        freezerNames:Array.isArray(saved.freezerNames) ? saved.freezerNames : [],
+        fridgeNames:Array.isArray(saved.fridgeNames) ? saved.fridgeNames : [],
+        freezerHeights:Array.isArray(saved.freezerHeights) ? saved.freezerHeights : [],
+        fridgeHeights:Array.isArray(saved.fridgeHeights) ? saved.fridgeHeights : []
+      };
+    }
+  }catch{}
+}
+
+function shelfHeight(type,index){
+  const heights = type === "freezer" ? fridgeSettings.freezerHeights : fridgeSettings.fridgeHeights;
+  return heights[index] || "basic";
+}
+
+function setShelfHeight(type,index,value){
+  const key = type === "freezer" ? "freezerHeights" : "fridgeHeights";
+  if(!Array.isArray(fridgeSettings[key])) fridgeSettings[key]=[];
+  fridgeSettings[key][index]=value;
+  saveSettings();
+  localBackup();
+  const shelf=[...document.querySelectorAll(`.shelf[data-type="${type}"]`)][index];
+  if(shelf){
+    shelf.classList.remove("shelf-height-small","shelf-height-basic","shelf-height-large");
+    shelf.classList.add(`shelf-height-${value}`);
+    shelf.dataset.height=value;
+    shelf.querySelectorAll(".shelf-height-btn").forEach(btn=>btn.classList.toggle("active",btn.dataset.height===value));
+  }
+}
+
+function toggleShelfEditor(shelf){
+  const wasEditing=shelf.classList.contains("editing");
+  document.querySelectorAll(".shelf.editing").forEach(other=>other.classList.remove("editing"));
+  if(!wasEditing) shelf.classList.add("editing");
+}
+
+function renderShelves(){
+  const make=(type,count)=>{
+    const container=$(type === "freezer" ? "freezerShelves" : "fridgeShelves");
+    container.innerHTML="";
+    for(let i=0;i<count;i++){
+      const shelf=document.createElement("div");
+      shelf.className="shelf";
+      shelf.dataset.location=shelfLocation(type,i,count);
+      shelf.dataset.type=type;
+      shelf.dataset.index=i;
+      const currentHeight=shelfHeight(type,i);
+      shelf.dataset.height=currentHeight;
+      shelf.classList.add(`shelf-height-${currentHeight}`);
+      shelf.innerHTML=`
+        <div class="shelf-head">
+          <div class="shelf-label">${escapeHtml(shelfLabel(type,i,count))}</div>
+          <input class="shelf-name-editor" type="text" value="${escapeHtml(shelfLabel(type,i,count))}" maxlength="30" aria-label="선반 이름">
+          <button type="button" class="shelf-save-name" title="선반 이름 저장" aria-label="선반 이름 저장"><span aria-hidden="true">✓</span></button>
+          <button type="button" class="rename-shelf" title="선반 편집/취소">✎</button>
+          <div class="shelf-height-controls" aria-label="선반 높이">
+            <button type="button" class="shelf-height-btn ${currentHeight==="small"?"active":""}" data-height="small">작게</button>
+            <button type="button" class="shelf-height-btn ${currentHeight==="basic"?"active":""}" data-height="basic">기본</button>
+            <button type="button" class="shelf-height-btn ${currentHeight==="large"?"active":""}" data-height="large">크게</button>
+          </div>
+        </div>
+        <div class="items"></div>
+      `;
+
+      const nameInput=shelf.querySelector(".shelf-name-editor");
+      const saveNameBtn=shelf.querySelector(".shelf-save-name");
+      shelf.querySelector(".rename-shelf").addEventListener("click",e=>{
+        e.stopPropagation();
+        const wasEditing=shelf.classList.contains("editing");
+        if(wasEditing){
+          // 수정 버튼을 다시 누르면 변경 내용을 버리고 즉시 원래 화면으로 돌아갑니다.
+          nameInput.value=shelfLabel(type,i,count);
+          toggleShelfEditor(shelf);
+          return;
+        }
+        toggleShelfEditor(shelf);
+        nameInput.value=shelfLabel(type,i,count);
+        requestAnimationFrame(()=>{nameInput.focus(); nameInput.select();});
+      });
+
+      function commitShelfName(){
+        const next=nameInput.value.trim();
+        const current=shelfLabel(type,i,count);
+        if(!next || next===current){ nameInput.value=current; return; }
+        const oldLocation=shelfLocation(type,i,count);
+        const names=type === "freezer" ? fridgeSettings.freezerNames : fridgeSettings.fridgeNames;
+        names[i]=next;
+        items.forEach(item=>{ if(item.location===oldLocation) item.location=shelfLocation(type,i,count); });
+        saveSettings();
+        localBackup();
+        renderShelves();
+        render();
+        $("settingsStatus").textContent="✓ 선반 이름을 변경했어요.";
+      }
+
+      saveNameBtn.addEventListener("click",e=>{
+        e.stopPropagation();
+        commitShelfName();
+      });
+      nameInput.addEventListener("keydown",e=>{
+        if(e.key==="Enter"){ e.preventDefault(); commitShelfName(); }
+        if(e.key==="Escape"){
+          e.preventDefault();
+          nameInput.value=shelfLabel(type,i,count);
+          toggleShelfEditor(shelf);
+        }
+      });
+
+      shelf.querySelectorAll(".shelf-height-btn").forEach(button=>{
+        button.addEventListener("click",e=>{
+          e.stopPropagation();
+          setShelfHeight(type,i,button.dataset.height);
+        });
+      });
+
+      shelf.addEventListener("click",e=>{
+        if(e.target.closest(".item")) return;
+        // 선반 이름/편집 영역은 '빈 선반 클릭 → 재료 입력' 기능에서 제외
+        if(e.target.closest(".shelf-head")) return;
+        $("location").value=shelf.dataset.location;
+        $("name").focus();
+      });
+      container.appendChild(shelf);
+    }
+  };
+  make("freezer",fridgeSettings.freezer);
+  make("fridge",fridgeSettings.fridge);
+  updateLocationOptions();
+}
+
+function updateLocationOptions(){
+  const select=$("location");
+  const current=select.value;
+  select.innerHTML="";
+  const groups=[
+    ["냉장실", "fridge", fridgeSettings.fridge],
+    ["냉동실", "freezer", fridgeSettings.freezer]
+  ];
+  groups.forEach(([label,type,count])=>{
+    const group=document.createElement("optgroup"); group.label=label;
+    getShelfLocations(type,count).forEach(location=>{
+      const option=document.createElement("option"); option.value=location; option.textContent=location.split(" · ")[1]; group.appendChild(option);
+    });
+    select.appendChild(group);
+  });
+  const all=[...select.options];
+  select.value=all.some(o=>o.value===current)?current:all[0]?.value||"";
+}
+
+function remapItemsAfterSettingsChange(oldSettings){
+  items.forEach(item=>{
+    if(!item.location) return;
+    const isFreezer=item.location.startsWith("냉동실");
+    const type=isFreezer?"freezer":"fridge";
+    const oldCount=isFreezer?oldSettings.freezer:oldSettings.fridge;
+    const newCount=isFreezer?fridgeSettings.freezer:fridgeSettings.fridge;
+    const oldNames = type === "freezer" ? (oldSettings.freezerNames || []) : (oldSettings.fridgeNames || []);
+    const oldLabels = Array.from({length:oldCount},(_,i)=>`${isFreezer ? "냉동실" : "냉장실"} · ${oldNames[i] || defaultShelfLabel(i,oldCount)}`);
+    let index=oldLabels.indexOf(item.location);
+    if(index===-1){
+      const oldText=item.location.split(" · ")[1]||"";
+      const legacy={"상단":0,"중단":1,"하단":2,"최상단":0,"최하단":oldCount-1};
+      index=legacy[oldText] ?? 0;
+    }
+    index=Math.min(index,newCount-1);
+    item.location=shelfLocation(type,index,newCount);
+  });
+}
+
 
 function daysSince(dateString){
   const start = new Date(dateString + "T00:00:00");
@@ -461,23 +982,60 @@ function daysSince(dateString){
   return Math.max(0, Math.floor((now - start) / 86400000));
 }
 
+function daysUntil(dateString){
+  const expiry = new Date(dateString + "T00:00:00");
+  const today = new Date();
+  const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.ceil((expiry - now) / 86400000);
+}
+
+let recipeNotes = [];
+let editingRecipeId = null;
+
 function localBackup(){
   localStorage.setItem(cacheKey(), JSON.stringify(items));
-  localStorage.setItem(notesKey(), $("mealNotes").value);
+  localStorage.setItem("myFridgeRecipeNotes", JSON.stringify(recipeNotes));
 }
 
 function setStatus(message){
   $("saveStatus").textContent = message;
 }
 
-function loadLocalData(){
+function loadRecipeNotes(){
   try{
-    items = JSON.parse(localStorage.getItem(cacheKey()) || "[]");
-    $("mealNotes").value = localStorage.getItem(notesKey()) || "";
+    const saved=JSON.parse(localStorage.getItem("myFridgeRecipeNotes") || "[]");
+    recipeNotes=Array.isArray(saved) ? saved : [];
   }catch{
-    items = [];
-    $("mealNotes").value = "";
+    recipeNotes=[];
   }
+
+  // 이전 버전의 한 칸짜리 메모가 있다면 첫 메모로 한 번만 옮깁니다.
+  if(recipeNotes.length===0){
+    const oldNote=localStorage.getItem(notesKey()) || "";
+    if(oldNote.trim()){
+      recipeNotes=[{
+        id:crypto.randomUUID(),
+        title:"기존 요리·식단 메모",
+        body:oldNote.trim(),
+        createdAt:new Date().toISOString().slice(0,10)
+      }];
+      localStorage.setItem("myFridgeRecipeNotes",JSON.stringify(recipeNotes));
+    }
+  }
+  renderRecipeNotes();
+}
+
+function loadLocalData(){
+  loadSettings();
+  try{
+    items=JSON.parse(localStorage.getItem(cacheKey()) || "[]");
+    if(!Array.isArray(items)) items=[];
+  }catch{
+    items=[];
+  }
+  loadRecipeNotes();
+  populateCountSelects();
+  renderShelves();
   render();
 }
 
@@ -498,30 +1056,43 @@ function render(){
   items.forEach(item=>{
     if(!item.id) item.id = crypto.randomUUID();
     if(typeof item.completed !== "boolean") item.completed = false;
+    if(!item.unit) item.unit = "개";
+    if(item.expiry === undefined) item.expiry = "";
 
     const shelf = [...document.querySelectorAll(".shelf")]
       .find(s=>s.dataset.location===item.location);
     if(!shelf) return;
 
     const card = document.createElement("div");
-    card.className = "item" + (item.completed ? " completed" : "");
+    const expiryDays = item.expiry ? daysUntil(item.expiry) : null;
+    const expiryClass = expiryDays !== null && expiryDays <= 3 ? (expiryDays < 0 ? " expired" : " expiring") : "";
+    card.className = "item" + (item.completed ? " completed" : "") + expiryClass;
 
     const dateInfo = item.date
       ? `${item.date.replaceAll("-",".")} 넣음`
       : "넣은 날 미기록";
+    const quantity = `${escapeHtml(item.qty || "1")}${escapeHtml(item.unit || "개")}`;
     const ageInfo = item.date
-      ? `넣은 지 ${daysSince(item.date)}일 · ${escapeHtml(item.qty)}`
-      : `넣은 날 없음 · ${escapeHtml(item.qty)}`;
+      ? `넣은 지 ${daysSince(item.date)}일 · ${quantity}`
+      : `넣은 날 없음 · ${quantity}`;
+    let expiryInfo = "유통기한 미기록";
+    if(item.expiry){
+      if(expiryDays < 0) expiryInfo = `유통기한 ${item.expiry.replaceAll("-",".")} · ${Math.abs(expiryDays)}일 지남`;
+      else if(expiryDays === 0) expiryInfo = `유통기한 ${item.expiry.replaceAll("-",".")} · 오늘`;
+      else expiryInfo = `유통기한 ${item.expiry.replaceAll("-",".")} · D-${expiryDays}`;
+    }
 
     card.innerHTML = `
       <div class="item-name">${escapeHtml(item.name)}</div>
       <div class="item-date">${dateInfo}</div>
       <div class="item-age">${ageInfo}</div>
+      <div class="item-expiry">${expiryInfo}</div>
       <div class="item-actions">
         <label class="use-check">
           <input type="checkbox" class="complete-check" ${item.completed ? "checked" : ""}>
           사용할 계획
         </label>
+        <button type="button" class="edit-item">수정</button>
         <button type="button" class="delete-item">삭제</button>
       </div>
     `;
@@ -530,6 +1101,11 @@ function render(){
       item.completed = e.target.checked;
       localBackup();
       render();
+    });
+
+    card.querySelector(".edit-item").addEventListener("click",e=>{
+      e.stopPropagation();
+      openEditModal(item);
     });
 
     card.querySelector(".delete-item").addEventListener("click",e=>{
@@ -548,9 +1124,199 @@ function render(){
   $("stats").textContent = `냉동 ${freezer}개 · 냉장 ${fridge}개`;
 }
 
+let editingItem=null;
+
+function fillEditLocationSelect(current){
+  const select=$("editLocation");
+  select.innerHTML="";
+  [["냉장실","fridge",fridgeSettings.fridge],["냉동실","freezer",fridgeSettings.freezer]].forEach(([label,type,count])=>{
+    const group=document.createElement("optgroup"); group.label=label;
+    getShelfLocations(type,count).forEach(location=>{
+      const option=document.createElement("option");
+      option.value=location; option.textContent=location.split(" · ")[1];
+      group.appendChild(option);
+    });
+    select.appendChild(group);
+  });
+  select.value=[...select.options].some(o=>o.value===current) ? current : select.options[0]?.value || "";
+}
+
+function openEditModal(item){
+  editingItem=item;
+  $("editName").value=item.name||"";
+  $("editDate").value=item.date||"";
+  $("editExpiry").value=item.expiry||"";
+  $("editQty").value=item.qty||"1";
+  $("editUnit").value=item.unit||"개";
+  fillEditLocationSelect(item.location||"");
+  $("editModal").hidden=false;
+  $("editName").focus();
+}
+
+function closeEditModal(){
+  editingItem=null;
+  $("editModal").hidden=true;
+}
+
+$("editCancel").addEventListener("click",closeEditModal);
+$("editModal").addEventListener("click",e=>{ if(e.target === $("editModal")) closeEditModal(); });
+$("editForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  if(!editingItem) return;
+  editingItem.name=$("editName").value.trim();
+  editingItem.date=$("editDate").value;
+  editingItem.expiry=$("editExpiry").value;
+  editingItem.qty=$("editQty").value.trim() || "1";
+  editingItem.unit=$("editUnit").value;
+  editingItem.location=$("editLocation").value;
+  localBackup();
+  closeEditModal();
+  render();
+  setStatus("✓ 식재료 정보를 수정했어요.");
+});
+
+$("applyFridgeSettings").addEventListener("click",()=>{
+  const oldSettings={...fridgeSettings};
+  const newFreezer=Number($("freezerCount").value);
+  const newFridge=Number($("fridgeCount").value);
+  fridgeSettings={
+    freezer:newFreezer,
+    fridge:newFridge,
+    freezerNames:(oldSettings.freezerNames||[]).slice(0,newFreezer),
+    fridgeNames:(oldSettings.fridgeNames||[]).slice(0,newFridge),
+    freezerHeights:(oldSettings.freezerHeights||[]).slice(0,newFreezer),
+    fridgeHeights:(oldSettings.fridgeHeights||[]).slice(0,newFridge)
+  };
+  remapItemsAfterSettingsChange(oldSettings);
+  saveSettings();
+  renderShelves();
+  localBackup();
+  render();
+  $("settingsStatus").textContent="✓ 냉장고 구조를 저장했어요.";
+});
+
+function resetRecipeForm(){
+  editingRecipeId=null;
+  $("recipeForm").reset();
+  $("recipeEditing").hidden=true;
+  $("recipeSaveButton").textContent="📝 메모 저장";
+}
+
+function openRecipeEditor(note){
+  editingRecipeId=note.id;
+  $("recipeTitle").value=note.title || "";
+  $("recipeBody").value=note.body || "";
+  $("recipeEditing").hidden=false;
+  $("recipeSaveButton").textContent="✓ 메모 수정";
+  $("recipeTitle").focus();
+  $("recipeForm").scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function renderRecipeNotes(){
+  const list=$("recipeNotesList");
+  list.innerHTML="";
+
+  if(recipeNotes.length===0){
+    list.innerHTML='<div class="recipe-empty">아직 저장된 요리·식단 메모가 없어요.</div>';
+    return;
+  }
+
+  recipeNotes.forEach(note=>{
+    const card=document.createElement("article");
+    card.className="recipe-note";
+    card.innerHTML=`
+      <div class="recipe-note-title">${escapeHtml(note.title || "제목 없는 메모")}</div>
+      <div class="recipe-note-body">${escapeHtml(note.body || "")}</div>
+      <div class="recipe-note-hint">...</div>
+      <div class="recipe-note-date">${escapeHtml(note.createdAt || new Date().toISOString().slice(0,10)).replaceAll("-", ".")}</div>
+      <div class="recipe-note-actions">
+        <button type="button" class="recipe-edit">수정</button>
+        <button type="button" class="recipe-delete">삭제</button>
+      </div>
+    `;
+
+    card.addEventListener("click",e=>{
+      if(e.target.closest("button")) return;
+      card.classList.toggle("expanded");
+    });
+
+    card.querySelector(".recipe-edit").addEventListener("click",e=>{
+      e.stopPropagation();
+      openRecipeEditor(note);
+    });
+
+    card.querySelector(".recipe-delete").addEventListener("click",e=>{
+      e.stopPropagation();
+      const confirmed=confirm(`"${note.title || "제목 없는 메모"}" 메모를 삭제할까요?`);
+      if(!confirmed) return;
+      recipeNotes=recipeNotes.filter(item=>item.id!==note.id);
+      if(editingRecipeId===note.id) resetRecipeForm();
+      localBackup();
+      renderRecipeNotes();
+      setStatus("✓ 요리·식단 메모를 삭제했어요.");
+    });
+
+    list.appendChild(card);
+  });
+}
+
+$("recipeForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const title=$("recipeTitle").value.trim() || "제목 없는 메모";
+  const body=$("recipeBody").value.trim();
+
+  if(!body){
+    $("recipeBody").focus();
+    setStatus("메모 내용을 입력해주세요.");
+    return;
+  }
+
+  if(editingRecipeId){
+    const note=recipeNotes.find(item=>item.id===editingRecipeId);
+    if(note){
+      note.title=title;
+      note.body=body;
+      setStatus("✓ 요리·식단 메모를 수정했어요.");
+    }
+  }else{
+    recipeNotes.unshift({
+      id:crypto.randomUUID(),
+      title,
+      body,
+      createdAt:new Date().toISOString().slice(0,10)
+    });
+    setStatus("✓ 요리·식단 메모를 저장했어요.");
+  }
+
+  localBackup();
+  resetRecipeForm();
+  renderRecipeNotes();
+});
+
 $("saveButton").addEventListener("click",saveLocal);
 
-$("mealNotes").addEventListener("input",localBackup);
+function clearStorageArea(area){
+  const label = area === "freezer" ? "냉동실" : "냉장실";
+  const prefix = area === "freezer" ? "냉동" : "냉장";
+  const count = items.filter(item=>item.location && item.location.startsWith(prefix)).length;
+
+  if(count === 0){
+    setStatus(`✓ ${label}에 등록된 식재료가 없어요.`);
+    return;
+  }
+
+  const confirmed = confirm(`⚠️ ${label}의 식재료 ${count}개를 모두 삭제할까요?\n\n이 작업은 되돌릴 수 없어요.`);
+  if(!confirmed) return;
+
+  items = items.filter(item=>!(item.location && item.location.startsWith(prefix)));
+  localBackup();
+  render();
+  setStatus(`✓ ${label} 식재료 ${count}개를 모두 비웠어요.`);
+}
+
+$("clearFreezerButton").addEventListener("click",()=>clearStorageArea("freezer"));
+$("clearFridgeButton").addEventListener("click",()=>clearStorageArea("fridge"));
+
 
 $("pngButton").addEventListener("click",async()=>{
   const button = $("pngButton");
@@ -586,6 +1352,8 @@ $("form").addEventListener("submit",e=>{
     name:$("name").value.trim(),
     date:$("date").value,
     qty:$("qty").value.trim() || "1",
+    unit:$("unit").value,
+    expiry:$("expiry").value,
     location:$("location").value,
     completed:false
   });
@@ -594,16 +1362,10 @@ $("form").addEventListener("submit",e=>{
   e.target.reset();
   $("date").value = new Date().toISOString().slice(0,10);
   $("qty").value = "1";
+  $("unit").value = "개";
+  $("expiry").value = "";
   render();
   setStatus("✓ 식재료를 추가했어요.");
-});
-
-document.querySelectorAll(".shelf").forEach(shelf=>{
-  shelf.addEventListener("click",e=>{
-    if(e.target.closest(".item")) return;
-    $("location").value = shelf.dataset.location;
-    $("name").focus();
-  });
 });
 
 $("date").value = new Date().toISOString().slice(0,10);
