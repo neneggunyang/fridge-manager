@@ -235,6 +235,10 @@
   }
 
   @media (max-width:600px){
+    .form > button[type="submit"]{min-width:140px;justify-self:center}
+
+    .date-field small{white-space:normal}
+
     .shelf-head{gap:5px}
     .shelf.editing .shelf-head{justify-content:center}
     .shelf-name-editor{width:120px;flex-basis:120px}
@@ -369,7 +373,12 @@
     text-align:center;
     font-size:16px;
   }
-  .form{
+    .form > button[type="submit"]{
+    grid-column:1 / -1;
+    justify-self:center;
+    min-width:120px;
+  }
+.form{
     display:grid;
     grid-template-columns:1.15fr .78fr .52fr .62fr 1.05fr auto;
     gap:9px;
@@ -402,6 +411,24 @@
   .form button:hover,.save-button:hover{background:#405a65}
   .png-button:hover{background:#665563}
 
+  .date-field{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    min-width:0;
+  }
+  .date-field label{
+    font-size:10px;
+    font-weight:700;
+    color:#6f7d83;
+    line-height:1.2;
+  }
+  .date-field small{
+    font-size:8px;
+    color:#a0aaae;
+    line-height:1.2;
+    white-space:nowrap;
+  }
   .notice{
     margin-top:10px;
     text-align:center;
@@ -700,7 +727,7 @@
     <h3>식재료 추가</h3>
     <form class="form" id="form">
       <input id="name" placeholder="식재료 이름" required>
-      <input id="date" type="date" aria-label="냉장고에 넣은 날">
+      <div class="date-field"><label for="date">넣은 날</label><input id="date" type="date" aria-label="냉장고에 넣은 날"><small>냉장고에 넣은 날짜</small></div>
       <input id="qty" type="number" min="0" step="any" placeholder="수량" value="1">
       <select id="unit" aria-label="수량 단위">
         <option value="개">개</option>
@@ -715,7 +742,7 @@
         <option value="통">통</option>
         <option value="묶음">묶음</option>
       </select>
-      <input id="expiry" type="date" aria-label="유통기한" title="유통기한">
+      <div class="date-field"><label for="expiry">유통기한</label><input id="expiry" type="date" aria-label="유통기한" title="유통기한"><small>식재료의 유통기한</small></div>
       <select id="location" aria-label="보관 위치"></select>
       <button type="submit">추가하기</button>
     </form>
