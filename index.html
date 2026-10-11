@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#eef1f3">
 <title>냉장고 관리</title>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   [hidden]{display:none!important}
   *{box-sizing:border-box}
@@ -670,16 +671,124 @@
     .form button{grid-column:auto}
     .top-actions button{max-width:none}
   }
+
+  .backup-panel{
+    margin:18px 0 24px;
+    padding:0;
+    border:1px solid #d7dfe3;
+    border-radius:15px;
+    background:rgba(255,255,255,.72);
+    overflow:hidden;
+  }
+  .backup-panel>summary{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:16px 18px;cursor:pointer;list-style:none;
+    font-size:15px;font-weight:800;color:#35464f;
+  }
+  .backup-panel>summary::-webkit-details-marker{display:none}
+  .backup-panel>summary::after{content:"＋";flex:0 0 auto;color:#71838b;font-size:19px;font-weight:500}
+  .backup-panel[open]>summary::after{content:"−"}
+  .backup-content{padding:0 18px 18px;border-top:1px solid #e5eaec}
+  .backup-content h3{margin:14px 0 7px;font-size:17px}
+  .backup-panel p{margin:0;color:#687780;font-size:13px;line-height:1.65}
+  .backup-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+  .backup-actions button{
+    border:0;border-radius:10px;padding:10px 13px;font-weight:700;font-size:13px;
+    background:#dce8e8;color:#2c4b4c;
+  }
+  .backup-actions .restore-button{background:#e8e2d8;color:#5c4935}
+  .backup-help{margin-top:10px!important;font-size:12px!important}
+  .backup-status{margin-top:10px;color:#3f6662;font-size:13px;line-height:1.5;min-height:1.3em}
+  @media(max-width:600px){.backup-panel{padding:14px}.backup-actions{display:grid;grid-template-columns:1fr}.backup-actions button{width:100%}}
+
+
+  .cloud-sync-panel{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 18px;padding:13px 16px;border:1px solid #d5e2e5;border-radius:14px;background:#f8fbfb;flex-wrap:wrap}
+  .cloud-sync-copy{display:flex;align-items:flex-start;gap:10px;min-width:0;flex:1}
+  .cloud-sync-icon{font-size:22px;line-height:1.35;flex:0 0 auto}
+  .cloud-sync-title{margin:0 0 3px;font-size:14px;font-weight:800;color:#344c55}
+  .cloud-sync-message{margin:0;color:#657780;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+  .cloud-sync-time{margin-top:3px;color:#7b898f;font-size:11px}
+  .cloud-sync-panel[data-state="success"]{border-color:#b8ddc7;background:#f3fbf5}
+  .cloud-sync-panel[data-state="success"] .cloud-sync-title{color:#236c42}
+  .cloud-sync-panel[data-state="pending"]{border-color:#e9d3a9;background:#fffaf0}
+  .cloud-sync-panel[data-state="error"]{border-color:#e7b8b3;background:#fff6f5}
+  .cloud-sync-panel[data-state="error"] .cloud-sync-title{color:#9b342b}
+  .cloud-sync-button{flex:0 0 auto;border:0;border-radius:10px;padding:11px 14px;background:#536c77;color:#fff;font-weight:750;font-size:12px;cursor:pointer}
+  .cloud-sync-button:disabled{opacity:.55;cursor:wait}
+  @media(max-width:600px){.cloud-sync-panel{align-items:stretch;padding:12px;gap:10px}.cloud-sync-button{width:100%}}
+
+  .app.auth-required{min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .app.auth-required>:not(#authPanel){display:none!important}
+  .app.auth-required #authPanel{width:min(560px,100%);margin:0;padding:28px}
+  .auth-panel{margin:0 0 22px;padding:18px;background:#fff;border:1px solid #dce2e5;border-radius:16px;box-shadow:0 5px 20px rgba(40,50,55,.06)}
+  .auth-panel h2{margin:0 0 6px;text-align:center;font-size:18px}
+  .auth-desc{margin:0 0 13px;text-align:center;color:#7a858d;font-size:12px;line-height:1.6}
+  .auth-migration-notice{margin:0 0 14px;padding:12px 13px;border:1px solid #d8e4d8;border-radius:11px;background:#f5faf4;color:#526451;font-size:12px;line-height:1.55}
+  .auth-migration-notice strong{display:block;margin-bottom:4px;color:#38563a;font-size:13px}
+  .auth-migration-notice p{margin:0}
+  .auth-migration-notice p+p{margin-top:5px}
+  .auth-fields{display:grid;grid-template-columns:1fr 1fr;gap:9px;max-width:650px;margin:auto}
+  .auth-fields input{height:42px}
+  .auth-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .auth-actions button{min-height:40px;padding:0 15px;border:0;border-radius:9px;background:#536c77;color:white;font-weight:700}
+  .auth-actions .secondary{background:#e9eef0;color:#53636b}
+  .auth-actions button:disabled{opacity:.5;cursor:wait}
+  .auth-status{min-height:18px;margin-top:10px;text-align:center;color:#536c77;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+  .auth-user{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font-size:12px;color:#536c77;margin-bottom:8px}
+  .app-logout{position:absolute;right:0;top:0;border:1px solid #d7dfe3;border-radius:9px;background:#fff;color:#536c77;padding:7px 10px;font-size:12px}
+  .app-logout:hover{background:#e9eef0}
+  @media(max-width:600px){.auth-fields{grid-template-columns:1fr}.auth-panel{padding:14px}.app.auth-required #authPanel{padding:20px}.app-logout{position:static;margin-top:8px}}
+  .data-choice-backdrop{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(39,49,58,.48)}
+  .data-choice-card{width:min(820px,calc(100vw - 36px));max-height:none;overflow:visible;padding:20px;background:#fff;border:1px solid #dce2e5;border-radius:18px;box-shadow:0 18px 50px rgba(30,40,45,.22)}
+  .data-choice-card h2{margin:0 0 8px;text-align:left;font-size:21px;line-height:1.35}
+  .data-choice-intro{margin:0 0 12px;color:#65717a;font-size:13px;line-height:1.55}
+  .data-choice-option{margin:8px 0;padding:12px;border:1px solid #dce2e5;border-radius:12px;background:#f9fbfb}
+  .data-choice-option h3{margin:0 0 5px;font-size:15px}
+  .data-choice-option p{margin:0;color:#65717a;font-size:12px;line-height:1.55}
+  .data-choice-option.cloud{border-color:#c8dfe8;background:#f3fafc}
+  .data-choice-option.local{border-color:#e6d9c7;background:#fcf8f2}
+  .data-choice-warning{margin:10px 0 0;padding:10px 12px;border-radius:9px;background:#fff4e8;color:#7a5428;font-size:12px;line-height:1.5}
+  .data-choice-backup-hint{display:flex;align-items:flex-start;gap:10px;margin:10px 0 0;padding:10px 12px;border:1px solid #9bc8e8;border-left:5px solid #287bb5;border-radius:10px;background:#eaf6ff;color:#174d73;font-size:12px;line-height:1.5}
+  .data-choice-backup-hint strong{color:#123f61}
+  .data-choice-backup-hint .hint-icon{flex:0 0 auto;font-size:19px;line-height:1.3}
+  .data-choice-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+  .data-choice-actions button{min-height:44px;padding:10px;border:0;border-radius:9px;font-size:12px;font-weight:700;line-height:1.4}
+  .data-choice-cloud{background:#536c77;color:#fff}.data-choice-local{background:#e8e2d8;color:#5c4935}
+  @media(max-width:520px){.data-choice-card{width:calc(100vw - 24px);padding:16px}.data-choice-actions{grid-template-columns:1fr}.data-choice-card h2{font-size:19px}}
+  @media(max-height:760px){.data-choice-backdrop{align-items:flex-start;overflow-y:auto}.data-choice-card{max-height:none;margin:auto}}
+  @media(max-height:620px){.data-choice-backdrop{align-items:flex-start}.data-choice-card{margin:12px auto}}
+
 </style>
 </head>
 <body>
-<div class="app">
+<div class="app auth-required" id="appRoot">
+  <div class="auth-panel" id="authPanel">
+    <h2>☁️ 냉장고 로그인 · 클라우드 동기화</h2>
+    <p class="auth-desc">냉장고를 사용하려면 로그인해주세요.<br>로그인하면 내 냉장고 데이터를 안전하게 저장하고 다른 기기에서도 사용할 수 있어요.</p>
+    <div class="auth-migration-notice" role="note">
+      <strong>기존에 이 브라우저에 냉장고 데이터가 있나요?</strong>
+      <p>로그인 후 안내에 따라 백업하고 클라우드로 옮길 수 있어요. 다른 기기에 기존 데이터가 있다면 해당 기기에서도 데이터 선택 안내가 표시될 수 있어요.</p>
+      <p>데이터 이전이 끝나기 전에는 브라우저 데이터를 삭제하지 마세요.</p>
+    </div>
+    <div class="auth-user" id="authUser" hidden></div>
+    <div class="auth-fields" id="authFields">
+      <input id="authEmail" type="email" autocomplete="email" placeholder="이메일" aria-label="이메일">
+      <input id="authPassword" type="password" autocomplete="current-password" placeholder="비밀번호 (6자 이상)" aria-label="비밀번호" minlength="6">
+    </div>
+    <div class="auth-actions" id="authActions">
+      <button type="button" id="signInButton">로그인</button>
+      <button type="button" class="secondary" id="signUpButton">회원가입</button>
+    </div>
+    <div class="auth-status" id="authStatus" role="status" aria-live="polite">로그인 전에는 데이터가 이 브라우저에만 저장돼요.</div>
+  </div>
+  
   <header>
     <div>
       <h1>냉장고에 뭐가 들었나요?</h1>
       <p class="subtitle">내 냉장고 속 재료를 한눈에 기록해요.</p>
     </div>
     <div class="stats" id="stats">냉동 0개 · 냉장 0개</div>
+    <button type="button" class="app-logout" id="appLogoutButton" hidden>로그아웃</button>
   </header>
 
   <main class="fridge" id="fridge">
@@ -746,7 +855,7 @@
       <select id="location" aria-label="보관 위치"></select>
       <button type="submit">추가하기</button>
     </form>
-    <div class="notice">재료가 많아지면 각 선반 안에서 스크롤할 수 있어요. 이 앱은 로그인 없이 이 브라우저에만 저장됩니다. 넣은 날을 몰라도 비워둔 채 등록할 수 있고, 유통기한을 입력하면 3일 전부터 빨간색으로 강조됩니다. 사용할 계획을 체크하면 취소선으로 표시됩니다.</div>
+    <div class="notice">재료가 많아지면 각 선반 안에서 스크롤할 수 있어요. 로그인 전에는 이 브라우저에 저장되며, 로그인하면 계정에 클라우드 동기화할 수 있어요. 넣은 날을 몰라도 비워둔 채 등록할 수 있고, 유통기한을 입력하면 3일 전부터 빨간색으로 강조됩니다. 사용할 계획을 체크하면 취소선으로 표시됩니다.</div>
   </section>
 
   <section class="meal-notes">
@@ -759,6 +868,79 @@
       <button type="submit" class="recipe-save" id="recipeSaveButton">📝 메모 저장</button>
     </form>
     <div class="recipe-notes-list" id="recipeNotesList"></div>
+  </section>
+
+  <details class="backup-panel">
+    <summary id="backupTitle">🧳 데이터 백업 · 복원 · 클라우드 저장</summary>
+    <div class="backup-content">
+      <h3>데이터 백업 · 복원</h3>
+      <p>이 브라우저에 저장된 식재료, 냉장고 선반 설정, 요리·식단 메모를 JSON 파일로 백업할 수 있어요. 다른 기기나 브라우저로 옮길 때도 이 파일을 사용하세요.</p>
+      <div class="backup-actions">
+        <button type="button" id="exportBackupButton">⬇️ 전체 데이터 백업</button>
+        <button type="button" class="restore-button" id="importBackupButton">⬆️ 백업 파일 복원</button>
+        <input type="file" id="backupFileInput" accept=".json,application/json" hidden>
+      </div>
+      <p class="backup-help">복원하면 현재 브라우저의 데이터가 백업 파일 내용으로 교체됩니다. 복원 전 현재 데이터도 별도 백업 파일로 내려받도록 했어요.</p>
+      <div class="backup-status" id="backupStatus" role="status" aria-live="polite"></div>
+      <h3>☁️ 클라우드 저장</h3>
+      <p>로그인한 계정에 냉장고 데이터를 저장하고, 실제 저장 상태와 마지막 저장 시각을 확인할 수 있어요. 자동 동기화 외에 필요할 때 직접 저장할 수도 있어요.</p>
+      <section class="cloud-sync-panel" id="cloudSyncPanel" data-state="idle" aria-live="polite">
+        <div class="cloud-sync-copy">
+          <span class="cloud-sync-icon" id="cloudSyncIcon" aria-hidden="true">☁️</span>
+          <div>
+            <p class="cloud-sync-title" id="cloudSyncTitle">클라우드 연결 상태</p>
+            <p class="cloud-sync-message" id="cloudSyncMessage">로그인하면 냉장고 데이터를 클라우드에 저장할 수 있어요.</p>
+            <p class="cloud-sync-time" id="cloudSyncTime"></p>
+          </div>
+        </div>
+        <button type="button" class="cloud-sync-button" id="manualCloudSaveButton" hidden>☁️ 현재 냉장고를 클라우드에 저장</button>
+      </section>
+    </div>
+  </details>
+</div>
+
+<div class="data-choice-backdrop" id="firstMigrationModal" hidden>
+  <section class="data-choice-card" role="dialog" aria-modal="true" aria-labelledby="firstMigrationTitle">
+    <h2 id="firstMigrationTitle">기존 냉장고 데이터를 클라우드로 옮길까요?</h2>
+    <p class="data-choice-intro">이 브라우저에 기존 냉장고 데이터가 있어요. 먼저 백업 파일을 내려받아 안전한 곳에 보관한 다음, 현재 데이터를 이 계정의 클라우드에 저장할게요. 백업을 확인하기 전에는 클라우드 저장을 진행하지 않아요.</p>
+    <div class="data-choice-option local">
+      <h3>💾 1. 기존 데이터 백업</h3>
+      <p>식재료, 선반 설정, 요리·식단 메모를 JSON 파일로 내려받아요. 다운로드가 끝났는지 확인하고 파일을 보관해주세요.</p>
+    </div>
+    <div class="data-choice-option cloud">
+      <h3>☁️ 2. 클라우드에 저장</h3>
+      <p>백업 파일을 확인한 뒤 아래 버튼을 누르면 현재 브라우저의 데이터를 계정에 저장해요. 기존 클라우드 데이터가 없을 때만 진행돼요.</p>
+    </div>
+    <div class="data-choice-actions">
+      <button type="button" class="data-choice-local" id="downloadFirstMigrationBackup">1. 백업 파일 다운로드</button>
+      <button type="button" class="data-choice-cloud" id="confirmFirstMigrationUpload" disabled>2. 백업 확인 완료 · 클라우드에 저장</button>
+      <button type="button" id="cancelFirstMigration">취소</button>
+    </div>
+    <p class="data-choice-warning" id="firstMigrationStatus" role="status" aria-live="polite">백업 파일을 다운로드하고 보관한 뒤 2단계를 눌러주세요.</p>
+  </section>
+</div>
+
+<div class="data-choice-backdrop" id="dataChoiceModal" hidden>
+  <section class="data-choice-card" role="dialog" aria-modal="true" aria-labelledby="dataChoiceTitle">
+    <h2 id="dataChoiceTitle">기존 냉장고 데이터를 어떻게 가져올까요?</h2>
+    <p class="data-choice-intro">이 계정에는 이미 클라우드 데이터가 있고, 현재 브라우저에도 별도로 저장된 데이터가 있어요. 두 데이터를 자동으로 합치지는 않으므로 사용할 쪽을 선택해주세요. 선택 후에는 앱 화면 맨 아래의 <strong>‘🧳 데이터 백업 · 복원 · 클라우드 저장’</strong> 탭에서 클라우드 저장 상태를 확인하거나 현재 데이터를 직접 저장할 수 있어요.</p>
+    <div class="data-choice-option cloud">
+      <h3>☁️ 클라우드 데이터를 사용하기</h3>
+      <p>이 계정에 저장된 식재료·선반 설정·요리 메모를 현재 브라우저로 불러와요. 현재 브라우저 데이터는 앱 화면에서 교체되지만, 선택 전에 별도 백업 파일로 내려받아요. 다른 기기에서 쓰던 데이터를 이어갈 때 선택하세요.</p>
+    </div>
+    <div class="data-choice-option local">
+      <h3>💻 현재 브라우저 데이터를 사용하기</h3>
+      <p>지금 이 브라우저에 보이는 식재료·선반 설정·요리 메모를 클라우드에 저장해 이 계정의 기존 클라우드 데이터를 교체해요. 기존 클라우드 데이터는 선택 전에 별도 백업 파일로 내려받아요. 현재 브라우저 데이터가 최신일 때 선택하세요.</p>
+    </div>
+    <p class="data-choice-warning">두 선택 모두 먼저 백업 파일을 다운로드해요. 다운로드가 완료되면 파일을 보관해두세요. 데이터가 어느 쪽이 최신인지 모르겠다면 선택을 미루고 백업부터 확인하는 것이 안전해요.</p>
+    <div class="data-choice-backup-hint" role="note">
+      <span class="hint-icon" aria-hidden="true">👇</span>
+      <div><strong>백업 파일을 다시 확인하거나 직접 복원하려면</strong><br>앱 화면을 아래로 내려 <strong>페이지 맨 아래의 ‘🧳 데이터 백업 · 복원 · 클라우드 저장’ 탭</strong>을 펼쳐주세요. 백업·복원과 클라우드 저장 상태 확인·직접 저장 기능이 모두 그곳에 있어요.</div>
+    </div>
+    <div class="data-choice-actions">
+      <button type="button" class="data-choice-cloud" id="chooseCloudData">클라우드 데이터 불러오기</button>
+      <button type="button" class="data-choice-local" id="chooseLocalData">현재 브라우저 데이터를 저장하기</button>
+    </div>
   </section>
 </div>
 
@@ -824,6 +1006,7 @@ function populateCountSelects(){
 
 function saveSettings(){
   localStorage.setItem(settingsKey(),JSON.stringify(fridgeSettings));
+  queueCloudSync();
 }
 
 function loadSettings(){
@@ -1022,6 +1205,7 @@ let editingRecipeId = null;
 function localBackup(){
   localStorage.setItem(cacheKey(), JSON.stringify(items));
   localStorage.setItem("myFridgeRecipeNotes", JSON.stringify(recipeNotes));
+  queueCloudSync();
 }
 
 function setStatus(message){
@@ -1322,6 +1506,117 @@ $("recipeForm").addEventListener("submit",e=>{
 
 $("saveButton").addEventListener("click",saveLocal);
 
+
+// 백업 파일에는 기존 앱의 모든 사용자 데이터를 포함합니다.
+function collectBackupData(){
+  return {
+    app: "my-fridge",
+    schemaVersion: 1,
+    exportedAt: new Date().toISOString(),
+    data: {
+      items: Array.isArray(items) ? items : [],
+      settings: fridgeSettings,
+      recipeNotes: Array.isArray(recipeNotes) ? recipeNotes : [],
+      legacyMealNote: localStorage.getItem(notesKey()) || ""
+    }
+  };
+}
+
+function downloadBackup(filenamePrefix="냉장고-백업"){
+  const backup=collectBackupData();
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  const date=new Date().toISOString().slice(0,10);
+  link.href=url;
+  link.download=`${filenamePrefix}-${date}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  return backup;
+}
+
+function normalizeImportedBackup(raw){
+  if(!raw || raw.app!=="my-fridge" || raw.schemaVersion!==1 || !raw.data || typeof raw.data!=="object"){
+    throw new Error("냉장고 관리 앱에서 만든 백업 파일이 아니거나 지원하지 않는 형식이에요.");
+  }
+  const d=raw.data;
+  if(!Array.isArray(d.items) || !Array.isArray(d.recipeNotes) || !d.settings || typeof d.settings!=="object"){
+    throw new Error("백업 파일에 필요한 데이터가 빠져 있어요. 기존 데이터는 변경하지 않았어요.");
+  }
+  const settingCount=n=>Number.isInteger(n)&&n>=1&&n<=8;
+  if(!settingCount(d.settings.freezer)||!settingCount(d.settings.fridge)){
+    throw new Error("선반 설정이 올바르지 않아요. 기존 데이터는 변경하지 않았어요.");
+  }
+  // 잘못된 형식의 식재료/메모가 섞인 파일은 부분 복원하지 않습니다.
+  if(d.items.some(item=>!item || typeof item!=="object" || typeof item.name!=="string" || typeof item.location!=="string") ||
+     d.recipeNotes.some(note=>!note || typeof note!=="object" || typeof note.title!=="string" || typeof note.body!=="string")){
+    throw new Error("식재료 또는 메모 데이터 형식이 올바르지 않아요. 기존 데이터는 변경하지 않았어요.");
+  }
+  const settings={
+    freezer:d.settings.freezer,
+    fridge:d.settings.fridge,
+    freezerNames:Array.isArray(d.settings.freezerNames)?d.settings.freezerNames:[],
+    fridgeNames:Array.isArray(d.settings.fridgeNames)?d.settings.fridgeNames:[],
+    freezerHeights:Array.isArray(d.settings.freezerHeights)?d.settings.freezerHeights:[],
+    fridgeHeights:Array.isArray(d.settings.fridgeHeights)?d.settings.fridgeHeights:[]
+  };
+  return {items:d.items,settings,recipeNotes:d.recipeNotes,legacyMealNote:typeof d.legacyMealNote==="string"?d.legacyMealNote:""};
+}
+
+$("exportBackupButton").addEventListener("click",()=>{
+  try{
+    downloadBackup();
+    $("backupStatus").textContent="✓ 식재료, 선반 설정, 요리·식단 메모를 백업 파일로 저장했어요.";
+  }catch(error){
+    $("backupStatus").textContent="백업 파일을 만들지 못했어요. 브라우저 설정을 확인해주세요.";
+  }
+});
+
+$("importBackupButton").addEventListener("click",()=>$("backupFileInput").click());
+$("backupFileInput").addEventListener("change",async event=>{
+  const file=event.target.files && event.target.files[0];
+  if(!file) return;
+  try{
+    const raw=JSON.parse(await file.text());
+    const imported=normalizeImportedBackup(raw);
+    const summary=`식재료 ${imported.items.length}개
+요리·식단 메모 ${imported.recipeNotes.length}개
+냉동실 선반 ${imported.settings.freezer}단 · 냉장실 선반 ${imported.settings.fridge}단`;
+    const confirmed=confirm(`이 백업 파일의 데이터를 복원할까요?
+
+${summary}
+
+복원하면 현재 브라우저의 데이터가 교체됩니다. 복원 전에 현재 데이터 백업 파일을 먼저 내려받습니다.`);
+    if(!confirmed) return;
+
+    // 변경 전 상태를 다운로드하고, 쓰기 실패 시에는 기존 localStorage 값을 되돌립니다.
+    downloadBackup("냉장고-복원전-안전백업");
+    const keys=[cacheKey(),settingsKey(),"myFridgeRecipeNotes",notesKey()];
+    const previous=Object.fromEntries(keys.map(key=>[key,localStorage.getItem(key)]));
+    try{
+      localStorage.setItem(cacheKey(),JSON.stringify(imported.items));
+      localStorage.setItem(settingsKey(),JSON.stringify(imported.settings));
+      localStorage.setItem("myFridgeRecipeNotes",JSON.stringify(imported.recipeNotes));
+      localStorage.setItem(notesKey(),imported.legacyMealNote);
+    }catch(writeError){
+      for(const key of keys){
+        if(previous[key]===null) localStorage.removeItem(key);
+        else localStorage.setItem(key,previous[key]);
+      }
+      throw new Error("브라우저 저장 공간이 부족해 복원하지 못했어요. 기존 데이터는 유지했어요.");
+    }
+    loadLocalData();
+    $("backupStatus").textContent=`✓ 복원 완료! 식재료 ${imported.items.length}개와 메모 ${imported.recipeNotes.length}개를 불러왔어요.`;
+    setStatus("✓ 백업 파일의 데이터를 복원했어요.");
+  }catch(error){
+    $("backupStatus").textContent=error instanceof SyntaxError?"JSON 파일을 읽을 수 없어요. 올바른 백업 파일인지 확인해주세요.":(error.message||"복원에 실패했어요. 기존 데이터는 변경하지 않았어요.");
+  }finally{
+    event.target.value="";
+  }
+});
+
 function clearStorageArea(area){
   const label = area === "freezer" ? "냉동실" : "냉장실";
   const prefix = area === "freezer" ? "냉동" : "냉장";
@@ -1397,6 +1692,276 @@ $("form").addEventListener("submit",e=>{
 
 $("date").value = new Date().toISOString().slice(0,10);
 loadLocalData();
+
+// Supabase public project credentials. Never place a secret/service_role key here.
+const SUPABASE_URL = "https://drkyldmyxjabgjrjdjgv.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_D6gEMkrnU1bt7RLU07lPBQ_vJwj1vea";
+let supabaseClient = null;
+let currentSession = null;
+let cloudSyncTimer = null;
+let applyingCloudState = false;
+
+function authMessage(message){ $("authStatus").textContent = message; }
+function setCloudStatus(state,title,message,savedAt=null){
+  const panel=$("cloudSyncPanel");
+  if(!panel) return;
+  panel.dataset.state=state;
+  $("cloudSyncTitle").textContent=title;
+  $("cloudSyncMessage").textContent=message;
+  const icons={idle:"☁️",pending:"⏳",success:"✓",error:"⚠️"};
+  $("cloudSyncIcon").textContent=icons[state]||"☁️";
+  if(savedAt){
+    const date=new Date(savedAt);
+    $("cloudSyncTime").textContent="마지막 저장 확인: "+(Number.isNaN(date.getTime())?savedAt:date.toLocaleString("ko-KR"));
+  } else {
+    $("cloudSyncTime").textContent="";
+  }
+}
+function setAuthBusy(busy){ [$("signInButton"),$("signUpButton")].forEach(button=>button.disabled=busy); }
+function currentAppState(){
+  return {
+    items: Array.isArray(items) ? items : [],
+    settings: fridgeSettings,
+    recipeNotes: Array.isArray(recipeNotes) ? recipeNotes : [],
+    legacyMealNote: localStorage.getItem(notesKey()) || ""
+  };
+}
+function applyCloudState(data){
+  if(!data || typeof data !== "object" || !Array.isArray(data.items) || !data.settings || !Array.isArray(data.recipeNotes)){
+    throw new Error("클라우드 데이터 형식이 올바르지 않아요. 데이터를 덮어쓰지 않았어요.");
+  }
+  applyingCloudState = true;
+  try{
+    localStorage.setItem(cacheKey(),JSON.stringify(data.items));
+    localStorage.setItem(settingsKey(),JSON.stringify(data.settings));
+    localStorage.setItem("myFridgeRecipeNotes",JSON.stringify(data.recipeNotes));
+    localStorage.setItem(notesKey(),typeof data.legacyMealNote === "string" ? data.legacyMealNote : "");
+    loadLocalData();
+  } finally { applyingCloudState = false; }
+}
+async function uploadCurrentState(showMessage=true){
+  if(!supabaseClient || !currentSession || applyingCloudState){
+    throw new Error("로그인 상태를 확인한 뒤 다시 시도해주세요.");
+  }
+  setCloudStatus("pending","클라우드에 저장 중이에요","현재 냉장고 데이터를 계정에 전송하고 있어요.");
+  $("manualCloudSaveButton").disabled=true;
+  const savedAt=new Date().toISOString();
+  try{
+    const {error}=await supabaseClient.from("fridge_app_state").upsert({
+      user_id: currentSession.user.id,
+      data: currentAppState(),
+      updated_at: savedAt
+    },{onConflict:"user_id"});
+    if(error) throw error;
+    setCloudStatus("success","클라우드 저장 확인됨","현재 냉장고 데이터가 이 계정의 클라우드에 저장됐어요.",savedAt);
+    if(showMessage) authMessage("✓ 이 계정의 냉장고 데이터를 클라우드에 저장했어요.");
+    return savedAt;
+  } catch(error){
+    setCloudStatus("error","클라우드 저장 실패","저장 결과를 확인하지 못했어요. 인터넷 연결을 확인하고 다시 시도해주세요.");
+    throw error;
+  } finally {
+    $("manualCloudSaveButton").disabled=!currentSession;
+  }
+}
+function queueCloudSync(){
+  if(applyingCloudState || !supabaseClient || !currentSession) return;
+  clearTimeout(cloudSyncTimer);
+  setCloudStatus("pending","변경 사항이 있어요","변경 내용을 클라우드에 저장할 준비를 하고 있어요.");
+  cloudSyncTimer=setTimeout(async()=>{
+    try{ await uploadCurrentState(false); authMessage("✓ 변경 사항을 클라우드에 동기화했어요."); }
+    catch(error){ authMessage("클라우드 저장 실패: "+(error.message||"오류가 발생했어요")+" · 로컬 데이터는 유지돼요."); }
+  },900);
+}
+function setSignedInUI(session){
+  currentSession=session;
+  const signedIn=!!session;
+  $("appRoot").classList.toggle("auth-required",!signedIn);
+  $("authPanel").hidden=signedIn;
+  $("appLogoutButton").hidden=!signedIn;
+  $("manualCloudSaveButton").hidden=!signedIn;
+  $("manualCloudSaveButton").disabled=!signedIn;
+  if(signedIn){
+    authMessage("로그인 확인 중이에요…");
+    setCloudStatus("pending","클라우드 연결 확인 중","계정의 냉장고 데이터를 확인하고 있어요.");
+  } else {
+    clearTimeout(cloudSyncTimer);
+    setCloudStatus("idle","클라우드 연결 안 됨","로그인하면 냉장고 데이터를 클라우드에 저장할 수 있어요.");
+    $("authFields").hidden=false;
+    $("authActions").hidden=false;
+    $("authUser").replaceChildren();
+    authMessage("냉장고를 사용하려면 로그인해주세요.");
+  }
+}
+function chooseExistingDataSource(){
+  return new Promise(resolve=>{
+    const modal=$("dataChoiceModal");
+    const cloudButton=$("chooseCloudData");
+    const localButton=$("chooseLocalData");
+    const finish=value=>{
+      modal.hidden=true;
+      cloudButton.removeEventListener("click",chooseCloud);
+      localButton.removeEventListener("click",chooseLocal);
+      resolve(value);
+    };
+    const chooseCloud=()=>finish("cloud");
+    const chooseLocal=()=>finish("local");
+    cloudButton.addEventListener("click",chooseCloud);
+    localButton.addEventListener("click",chooseLocal);
+    modal.hidden=false;
+  });
+}
+
+function hasMeaningfulLocalData(){
+  const state=currentAppState();
+  return state.items.length>0 || state.recipeNotes.length>0 || !!state.legacyMealNote.trim();
+}
+function deviceSyncKey(userId){ return "fridgeCloudDeviceSynced:"+userId; }
+function hasDeviceCompletedSync(userId){ return localStorage.getItem(deviceSyncKey(userId)) === "true"; }
+function markDeviceSyncCompleted(userId){ localStorage.setItem(deviceSyncKey(userId),"true"); }
+function confirmFirstMigration(){
+  return new Promise(resolve=>{
+    const modal=$("firstMigrationModal");
+    const downloadButton=$("downloadFirstMigrationBackup");
+    const confirmButton=$("confirmFirstMigrationUpload");
+    const cancelButton=$("cancelFirstMigration");
+    let backupRequested=false;
+    const cleanup=value=>{
+      modal.hidden=true;
+      downloadButton.removeEventListener("click",downloadBackupClick);
+      confirmButton.removeEventListener("click",confirmClick);
+      cancelButton.removeEventListener("click",cancelClick);
+      resolve(value);
+    };
+    const downloadBackupClick=()=>{
+      try{
+        downloadBackup("냉장고-클라우드이전전-안전백업");
+        backupRequested=true;
+        confirmButton.disabled=false;
+        $("firstMigrationStatus").textContent="백업 다운로드를 요청했어요. 파일이 실제로 내려받아졌는지 확인하고 보관한 뒤 2단계를 눌러주세요.";
+      }catch(error){
+        $("firstMigrationStatus").textContent="백업 파일을 만들지 못했어요. 클라우드 저장은 진행하지 않았어요.";
+      }
+    };
+    const confirmClick=()=>{if(backupRequested) cleanup(true);};
+    const cancelClick=()=>cleanup(false);
+    confirmButton.disabled=true;
+    $("firstMigrationStatus").textContent="백업 파일을 다운로드하고 보관한 뒤 2단계를 눌러주세요.";
+    downloadButton.addEventListener("click",downloadBackupClick);
+    confirmButton.addEventListener("click",confirmClick);
+    cancelButton.addEventListener("click",cancelClick);
+    modal.hidden=false;
+  });
+}
+
+async function handleSignedIn(session){
+  setSignedInUI(session);
+  if(!session) return;
+  try{
+    const {data:row,error}=await supabaseClient.from("fridge_app_state").select("data").eq("user_id",session.user.id).maybeSingle();
+    if(error) throw error;
+    if(row && row.data){
+      const deviceAlreadySynced=hasDeviceCompletedSync(session.user.id);
+      const localDataExists=hasMeaningfulLocalData();
+      if(deviceAlreadySynced || !localDataExists){
+        // This device already completed setup, or has no local data to protect: use cloud directly.
+        applyCloudState(row.data);
+        markDeviceSyncCompleted(session.user.id);
+        setCloudStatus("success","클라우드 데이터 불러오기 완료","계정에 저장된 냉장고 데이터를 이 브라우저로 불러왔어요.");
+        authMessage("✓ 클라우드 데이터를 불러왔어요.");
+      } else {
+        // First visit on this device with local data: give the user a one-time choice.
+        const choice=await chooseExistingDataSource();
+        if(choice==="cloud"){
+          downloadBackup("냉장고-클라우드불러오기전-안전백업");
+          applyCloudState(row.data);
+          markDeviceSyncCompleted(session.user.id);
+          setCloudStatus("success","클라우드 데이터 불러오기 완료","계정에 저장된 냉장고 데이터를 이 브라우저로 불러왔어요.");
+          authMessage("✓ 클라우드 데이터를 불러왔어요. 이 기기의 기존 데이터는 백업 파일로 저장했어요.");
+        } else {
+          downloadBackup("냉장고-클라우드덮어쓰기전-안전백업");
+          await uploadCurrentState();
+          markDeviceSyncCompleted(session.user.id);
+          authMessage("✓ 현재 브라우저 데이터를 클라우드에 저장했어요. 기존 클라우드 데이터는 백업 파일로 저장했어요.");
+        }
+      }
+    } else {
+      if(hasMeaningfulLocalData()){
+        const confirmed=await confirmFirstMigration();
+        if(!confirmed){
+          authMessage("데이터 이전을 취소했어요. 기존 로컬 데이터는 그대로 유지돼요.");
+          setCloudStatus("idle","클라우드 저장 대기 중","백업과 이전을 확인한 뒤 다시 진행할 수 있어요.");
+          return;
+        }
+      }
+      await uploadCurrentState(false);
+      markDeviceSyncCompleted(session.user.id);
+      authMessage("✓ 클라우드 저장 완료! 현재 브라우저의 냉장고 데이터를 이 계정에 저장했어요.");
+    }
+  }catch(error){
+    setCloudStatus("error","클라우드 연결/저장 오류","계정 데이터 확인 또는 저장에 실패했어요. 로컬 데이터는 유지돼요.");
+    authMessage("클라우드 연결 오류: "+(error.message||"오류가 발생했어요")+" · 로컬 데이터는 유지돼요.");
+  }
+}
+async function initSupabaseAuth(){
+  if(!window.supabase || !window.supabase.createClient){
+    authMessage("로그인 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인해주세요."); return;
+  }
+  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+  $("appLogoutButton").addEventListener("click",async()=>{
+    $("appLogoutButton").disabled=true;
+    try{
+      const {error}=await supabaseClient.auth.signOut();
+      if(error) throw error;
+      currentSession=null;
+      setSignedInUI(null);
+      authMessage("로그아웃했어요. 다시 로그인해야 냉장고를 사용할 수 있어요.");
+    }catch(error){
+      authMessage("로그아웃 실패: "+(error.message||"오류가 발생했어요."));
+    }finally{$("appLogoutButton").disabled=false;}
+  });
+  $("manualCloudSaveButton").addEventListener("click",async()=>{
+    if(!currentSession) return;
+    $("manualCloudSaveButton").disabled=true;
+    try{
+      await uploadCurrentState(true);
+    }catch(error){
+      authMessage("클라우드 저장 실패: "+(error.message||"오류가 발생했어요")+" · 로컬 데이터는 유지돼요.");
+    }finally{
+      $("manualCloudSaveButton").disabled=!currentSession;
+    }
+  });
+  $("signInButton").addEventListener("click",async()=>{
+    const email=$("authEmail").value.trim(), password=$("authPassword").value;
+    if(!email || !password){authMessage("이메일과 비밀번호를 입력해주세요.");return;}
+    setAuthBusy(true); authMessage("로그인 중이에요…");
+    try{
+      const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+      if(error) throw error;
+      await handleSignedIn(data.session);
+    }catch(error){authMessage("로그인 실패: "+error.message);}
+    finally{setAuthBusy(false);}
+  });
+  $("signUpButton").addEventListener("click",async()=>{
+    const email=$("authEmail").value.trim(), password=$("authPassword").value;
+    if(!email || !password){authMessage("이메일과 비밀번호를 입력해주세요.");return;}
+    if(password.length<6){authMessage("비밀번호는 6자 이상 입력해주세요.");return;}
+    setAuthBusy(true); authMessage("회원가입 중이에요…");
+    try{
+      const {data,error}=await supabaseClient.auth.signUp({email,password});
+      if(error) throw error;
+      if(data.session){ await handleSignedIn(data.session); }
+      else { authMessage("회원가입 요청을 보냈어요. 이메일 인증 링크를 확인한 뒤 로그인해주세요. 이메일 인증 설정에 따라 바로 로그인될 수도 있어요."); }
+    }catch(error){authMessage("회원가입 실패: "+error.message);}
+    finally{setAuthBusy(false);}
+  });
+  const {data,error}=await supabaseClient.auth.getSession();
+  if(error){authMessage("로그인 상태 확인 실패: "+error.message);return;}
+  if(data.session) await handleSignedIn(data.session);
+  supabaseClient.auth.onAuthStateChange((event,session)=>{
+    if(event==="SIGNED_OUT"){currentSession=null;setSignedInUI(null);}
+  });
+}
+initSupabaseAuth();
 </script>
 </body>
 </html>
